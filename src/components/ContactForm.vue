@@ -6,7 +6,7 @@
         name="name"
         type="text"
         class="form-control"
-        vmodel="contactLocal.name"
+        v-model="contactLocal.name"
       />
       <ErrorMessage name="name" class="error-feedback" />
     </div>
@@ -16,7 +16,7 @@
         name="email"
         type="email"
         class="form-control"
-        vmodel="contactLocal.email"
+        v-model="contactLocal.email"
       />
       <ErrorMessage name="email" class="error-feedback" />
     </div>
@@ -26,7 +26,7 @@
         name="address"
         type="text"
         class="form-control"
-        vmodel="contactLocal.address"
+        v-model="contactLocal.address"
       />
       <ErrorMessage name="address" class="error-feedback" />
     </div>
@@ -36,23 +36,25 @@
         name="phone"
         type="tel"
         class="form-control"
-        vmodel="contactLocal.phone"
+        v-model="contactLocal.phone"
       />
       <ErrorMessage name="phone" class="error-feedback" />
     </div>
     <div class="form-group form-check">
-      <input
+      <Field
         name="favorite"
         type="checkbox"
         class="form-check-input"
-        vmodel="contactLocal.favorite"
+        v-model="contactLocal.favorite"
+        :value="true"
+        :unchecked-value="false"
       />
       <label for="favorite" class="form-check-label">
         <strong>Liên hệ yêu thích</strong>
       </label>
     </div>
     <div class="form-group">
-      <button class="btn btn-primary">Lưu</button>
+      <button type="submit" class="btn btn-primary">Lưu</button>
       <button
         v-if="contactLocal._id"
         type="button"
@@ -61,12 +63,13 @@
       >
         Xóa
       </button>
-      <button type="button" class="ml-2 btn btn-danger" @click="Cancel">
+      <button type="button" class="ml-2 btn btn-secondary" @click="Cancel">
         Thoát
       </button>
     </div>
   </Form>
 </template>
+
 <script>
 import * as yup from "yup";
 import { Form, Field, ErrorMessage } from "vee-validate";
@@ -101,32 +104,43 @@ export default {
         ),
     });
     return {
-      // Chúng ta sẽ không muốn hiệu chỉnh props, nên tạo biến cục bộ
-      // contactLocal để liên kết với các input trên form
-      contactLocal: this.contact,
+      // Tạo một bản sao của contact để tránh thay đổi trực tiếp props
+      contactLocal: { ...this.contact },
       contactFormSchema,
     };
   },
+  watch: {
+    // Theo dõi thay đổi của prop contact và cập nhật contactLocal
+    contact: {
+      handler(newContact) {
+        this.contactLocal = { ...newContact };
+      },
+      deep: true,
+    },
+  },
   methods: {
     submitContact() {
+      console.log("Submit contact:", this.contactLocal);
       this.$emit("submit:contact", this.contactLocal);
     },
     deleteContact() {
-      this.$emit("delete:contact", this.contactLocal.id);
+      this.$emit("delete:contact", this.contactLocal._id);
     },
     Cancel() {
       const reply = window.confirm(
-        "You have unsaved changes! Do you want to leave?",
+        "Bạn có thay đổi chưa lưu! Bạn có muốn rời khỏi trang này?",
       );
       if (!reply) {
-        // stay on the page if
-        // user clicks 'Cancel'
+        // Ở lại trang nếu user nhấn Cancel
         return false;
-      } else this.$router.push({ name: "contactbook" });
+      } else {
+        this.$router.push({ name: "contactbook" });
+      }
     },
   },
 };
 </script>
+
 <style scoped>
 @import "@/assets/form.css";
 </style>
